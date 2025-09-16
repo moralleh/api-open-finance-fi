@@ -4,7 +4,7 @@ const Customer = mongoose.model("Customer", customerSchema);
 
 class CustomerController{
 
-    create = async(req,res) => {
+    static async create(req,res) {
         let {name, cpf, email} = req.body;
 
         if(!name || name.length <= 2){
@@ -17,12 +17,12 @@ class CustomerController{
 
         cpf = String(cpf).replace(/\D/g, '');
 
-        let cpfExist = await this.checkDuplicateCPF(cpf);
+        let cpfExist = await CustomerController.checkDuplicateCPF(cpf);
         if(cpfExist){
             return res.status(409).json({err: "Já existe um cliente cadastrado com esse cpf."});
         }
         
-        let cpfValidate = this.validateCPF(cpf);
+        let cpfValidate = CustomerController.validateCPF(cpf);
         if(!cpfValidate){
             return res.status(400).json({err: "O cpf é inválido!"});
         }
@@ -47,7 +47,7 @@ class CustomerController{
         }
     }
 
-    checkDuplicateCPF = async(cpf) => {
+    static async checkDuplicateCPF(cpf){
         try {
             let customer = await Customer.findOne({ cpf: cpf });
             return customer ? true : false
@@ -57,7 +57,7 @@ class CustomerController{
         }
     }
 
-    validateCPF(cpf) {
+    static validateCPF(cpf) {
         if (cpf.length !== 11) return false;
         if (/^('\d')\1+$/.test(cpf)) return false;
 
@@ -76,7 +76,7 @@ class CustomerController{
         return true;
     }
 
-    findById = async(id) => {
+    static async findById(id) {
         try {
             let customer = await Customer.findById(id);
             return customer;
@@ -86,9 +86,9 @@ class CustomerController{
         }
     }
 
-    insertAccInCustomer = async(id, newAccount) => {
+    static async insertAccInCustomer(id, newAccount) {
         try{
-            let customer = await this.findById(id);
+            let customer = await CustomerController.findById(id);
             customer.accounts.push(newAccount);
             await customer.save();
             return true;
@@ -100,4 +100,4 @@ class CustomerController{
 
 }
 
-module.exports = new CustomerController();
+module.exports = CustomerController;

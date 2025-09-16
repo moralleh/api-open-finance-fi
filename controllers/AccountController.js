@@ -8,7 +8,7 @@ let branchFixed = "0001";
 
 class AccountController{
 
-    create = async(req,res) => {
+    static async create(req,res) {
         let {idCustomer, type} = req.body;
 
         if(!idCustomer){
@@ -51,7 +51,7 @@ class AccountController{
         }
     }
 
-    findById = async(id) => {
+    static async findById(id) {
         try {
             let account = await Account.findById(id);
             return account;
@@ -61,7 +61,7 @@ class AccountController{
         }
     }
 
-    showBalance = async(req,res) => {
+    static async showBalance(req,res) {
         let {id} = req.params;
 
         if(!id){
@@ -69,7 +69,7 @@ class AccountController{
         }
         
         try{
-            let account = await this.findById(id);
+            let account = await AccountController.findById(id);
             if(!account){
                 return res.status(404).json({err: "Conta não encontrada!"});
             }
@@ -82,9 +82,9 @@ class AccountController{
         }
     }
 
-    insertTransactionInAcc = async(idAcc, newTransaction) => {
+    static async insertTransactionInAcc(idAcc, newTransaction) {
         try{
-            let account = await this.findById(idAcc);
+            let account = await AccountController.findById(idAcc);
 
             if(newTransaction.type == "credit"){
                 account.balance += newTransaction.amount;
@@ -107,4 +107,4 @@ class AccountController{
 }
 
 
-module.exports = new AccountController();
+module.exports = AccountController;

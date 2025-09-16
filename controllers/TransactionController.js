@@ -6,7 +6,7 @@ const findByIdAcc = AccountController.findById;
 
 class TransactionController{
     
-    create = async(req,res) => {
+    static async create(req,res) {
         let {idAcc, description, amount, type, category} = req.body;
 
         if(!idAcc){
@@ -37,7 +37,7 @@ class TransactionController{
             return res.status(400).json({err: "O tipo de transação não existe!"})
         }
 
-        let validAmount = await this.checkBalance(idAcc,type,amount);
+        let validAmount = await TransactionController.checkBalance(idAcc,type,amount);
         if(!validAmount){
             return res.status(403).json({err: "O saldo da conta é insuficiente para realizar transação!"});
         }
@@ -71,7 +71,7 @@ class TransactionController{
         }
     }
 
-    checkBalance = async(idAcc ,type, amount) => {
+    static async checkBalance(idAcc ,type, amount) {
         let account = await findByIdAcc(idAcc);
         if(type == "debit" && account.balance < amount){
             return false;
@@ -79,7 +79,7 @@ class TransactionController{
         return true;
     }
 
-    showTransactions = async(req,res) => {
+    static async showTransactions(req,res) {
        let {idAcc} = req.params;
 
         if(!idAcc){
@@ -103,4 +103,4 @@ class TransactionController{
 
 }
 
-module.exports = new TransactionController();
+module.exports = TransactionController;
