@@ -1,4 +1,4 @@
-# API Simulator - FI 
+# API Simulator - Financial Institution
 
 This is an API that simulates a financial institution (FI).  
 It was developed as part of a project during my current internship at **Compass UOL**.
