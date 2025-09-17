@@ -3,14 +3,16 @@
 This is an API that simulates a financial institution (FI).  
 It was developed as part of a project during my current internship at **Compass UOL**.
 
-- [1. Project Structure](#project-structure)
+### Table of Contents
+
+- [1. Architecture](#architecture)
 - [2. Features](#features)
 - [3. Technologies](#technologies-used)
 - [4. Endpoints](#endpoints)
 - [5. Request Examples](#request-examples)
 
-<a id="project-structure"></a>
-## 📂 1. Project Structure 
+<a id="architecture"></a>
+## 📂 1. Architecture
 
 ```
 open-finance-bank/
