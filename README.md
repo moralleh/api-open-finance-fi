@@ -58,15 +58,30 @@ open-finance-bank/
 ## 🌐 4. Endpoints
 
 ### Customers
-- POST **/customer** - Create new customer.
+- Create new customer.
+```
+  POST /customer
+```
 
 ### Accounts
-- POST **/account** - Create new account.
-- **GET /account/:id** - Display the current balance of the account by its ID.
+- Create new account.
+```
+  POST /account
+```
+- Display the current balance of the account by its ID.
+```
+  GET /account/:id
+```
 
 ### Transactions
-- POST **/transaction** - Create new transaction.
-- GET **/transaction/:idAcc** - Display all transactions associated with a specific account ID.
+- Create new transaction.
+```
+  POST /transaction
+```
+- Display all transactions associated with a specific account ID.
+```
+  GET /transaction/:idAcc
+```
 
 <a>id="request-examples"</a>
 ## 🗂️ 5. Request Examples
