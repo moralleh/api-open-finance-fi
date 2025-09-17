@@ -4,7 +4,7 @@ const Account = mongoose.model("Account", accountSchema);
 const CustomerController = require("../controllers/CustomerController");
 const findByIdCust = CustomerController.findById;
 
-let branchFixed = "0001";
+const branchFixed = "0001";
 
 class AccountController{
 
