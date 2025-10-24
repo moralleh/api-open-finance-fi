@@ -43,7 +43,7 @@ class TransactionController{
         }
 
         if(!category){
-            return res.status(400).json({err: "A categoria da transação é obrigatório!"})
+            return res.status(400).json({err: "A categoria da transação é obrigatória!"})
         }
 
         try{
