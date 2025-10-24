@@ -1,6 +1,7 @@
 const customerSchema = require("../models/Customer");
 const mongoose = require("mongoose");
 const Customer = mongoose.model("Customer", customerSchema);
+const { checkDuplicateCPF, validateCPF } = require("../utils/validateCPF");
 
 class CustomerController{
 
@@ -17,12 +18,12 @@ class CustomerController{
 
         cpf = String(cpf).replace(/\D/g, '');
 
-        let cpfExist = await CustomerController.checkDuplicateCPF(cpf);
+        let cpfExist = await checkDuplicateCPF(cpf);
         if(cpfExist){
             return res.status(409).json({err: "Já existe um cliente cadastrado com esse cpf."});
         }
         
-        let cpfValidate = CustomerController.validateCPF(cpf);
+        let cpfValidate = validateCPF(cpf);
         if(!cpfValidate){
             return res.status(400).json({err: "O cpf é inválido!"});
         }
@@ -45,35 +46,6 @@ class CustomerController{
             console.error(err);
             return res.status(500).json({ err: "Erro interno ao criar o cliente." });
         }
-    }
-
-    static async checkDuplicateCPF(cpf){
-        try {
-            let customer = await Customer.findOne({ cpf: cpf });
-            return customer ? true : false
-        }catch(err){
-            console.log("Erro ao verificar CPF duplicado: " + err);
-            return false;
-        }
-    }
-
-    static validateCPF(cpf) {
-        if (cpf.length !== 11) return false;
-        if (/^('\d')\1+$/.test(cpf)) return false;
-
-        const calculateDigit = (cpf, factor) => {
-            let total = 0;
-            for (let i = 0; i < factor - 1; i++) {
-                total += parseInt(cpf[i]) * (factor - i);
-            }
-            let remainder = total % 11;
-            return remainder < 2 ? 0 : 11 - remainder;
-        };
-
-        if (calculateDigit(cpf, 10) !== parseInt(cpf[9])) return false;
-        if (calculateDigit(cpf, 11) !== parseInt(cpf[10])) return false;
-
-        return true;
     }
 
     static async findById(id) {
