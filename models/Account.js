@@ -9,10 +9,18 @@ const account = new mongoose.Schema ({
     branch: String,
     number: String,
     balance: Number,
+    creditCardLimit: Number,
     transactions: [transaction]
 })
 
 account.pre("save", generateID("acc"));
 account.pre("save", generateNumber());
+
+account.pre("save", function (next) {
+  if (this.type !== "credit-card") {
+    this.creditCardLimit = undefined;
+  }
+  next();
+});
 
 module.exports = account;

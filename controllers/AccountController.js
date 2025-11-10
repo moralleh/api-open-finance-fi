@@ -5,11 +5,12 @@ const CustomerController = require("../controllers/CustomerController");
 const findByIdCust = CustomerController.findById;
 
 const branchFixed = "0001";
+const creditCardLimitFix = 500;
 
 class AccountController{
 
     static async create(req,res) {
-        let {idCustomer, type} = req.body;
+        let {idCustomer, type, creditCardLimit} = req.body;
 
         if(!idCustomer){
             return res.status(400).json({err: "O id do cliente é obrigatório!"})
@@ -24,7 +25,7 @@ class AccountController{
             return res.status(400).json({err: "O tipo da conta é obrigatório!"})
         } 
         let typeNew = type.toLowerCase();
-        if(typeNew != "checking" && typeNew != "salvings"){
+        if(typeNew != "checking" && typeNew != "salvings" && typeNew != "credit-card"){
             return res.status(400).json({err: "O tipo de conta não existe!"})
         }
         
@@ -33,6 +34,7 @@ class AccountController{
             account.type = typeNew;
             account.branch = branchFixed;
             account.balance = 0;
+            account.creditCardLimit = creditCardLimit || creditCardLimitFix;
 
             await account.save();
             console.log(account);
