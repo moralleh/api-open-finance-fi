@@ -10,6 +10,7 @@ const account = new mongoose.Schema ({
     number: String,
     balance: Number,
     creditCardLimit: Number,
+    availableLimit: Number,
     transactions: [transaction]
 })
 

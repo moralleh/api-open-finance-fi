@@ -35,6 +35,7 @@ class AccountController{
             account.branch = branchFixed;
             account.balance = 0;
             account.creditCardLimit = creditCardLimit || creditCardLimitFix;
+            account.availableLimit = creditCardLimit || creditCardLimitFix;
 
             await account.save();
             console.log(account);
