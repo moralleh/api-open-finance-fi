@@ -18,10 +18,6 @@ class TransactionController{
             return res.status(404).json({err: "Conta não encontrada!"});
         }
 
-        if (accountExist.type == "credit-card" && !totalInstallments){
-            return res.status(400).json({err: "O total do número de parcelas é obrigatório!"});
-        }
-
         if(!description){
             return res.status(400).json({err: "A descrição da transação é obrigatória!"});
         }
@@ -40,8 +36,28 @@ class TransactionController{
         if(typeNew != "credit" && typeNew != "debit"){
             return res.status(400).json({err: "O tipo de transação não existe!"})
         }
+        
+        if (accountExist.type == "credit-card"){
+            if (!totalInstallments){
+                return res.status(400).json({err: "O total do número de parcelas é obrigatório!"});
+            }
+            if (totalInstallments <= 0 || currentIntallment <= 0){
+                return res.status(400).json({err: "O número de parcelas é inválido!"});
+            }
+            if(currentIntallment > totalInstallments){
+                return res.status(400).json({err: "O número da parcela atual não pode ser maior que o total de parcelas!"});
+            }
+            let validAmount = await this.checkCreditCardLimit(idAcc, type, amount);
+            if(!validAmount){
+                return res.status(403).json({err: "O valor da transação é maior do que o limite do cartão de crédito"});
+            }
 
-        let validAmount = await TransactionController.checkBalance(idAcc,type,amount);
+        } else {
+            totalInstallments = 1;
+            currentIntallment = 1;
+        }
+
+        let validAmount = await this.checkBalance(idAcc,type,amount);
         if(!validAmount){
             return res.status(403).json({err: "O saldo da conta é insuficiente para realizar transação!"});
         }
@@ -57,8 +73,8 @@ class TransactionController{
             transaction.amount = amount;
             transaction.type = typeNew;
             transaction.category = category;
-            transaction.totalInstallments = totalInstallments || 1;
-            transaction.currentInstallment = currentIntallment || 1;
+            transaction.totalInstallments = totalInstallments;
+            transaction.currentInstallment = currentIntallment;
 
             await transaction.save();
             console.log(transaction);
@@ -77,9 +93,17 @@ class TransactionController{
         }
     }
 
-    static async checkBalance(idAcc ,type, amount) {
-        let account = await findByIdAcc(idAcc);
+    static async checkBalance(idAcc, type, amount) {
+        const account = await findByIdAcc(idAcc);
         if(type == "debit" && account.balance < amount){
+            return false;
+        }
+        return true;
+    }
+
+    static async checkCreditCardLimit(idAcc, type, amount) {
+        const account = await findByIdAcc(idAcc);
+        if(type == "credit-card" && account.availableLimit < amount){
             return false;
         }
         return true;
