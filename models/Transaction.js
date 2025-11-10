@@ -6,6 +6,8 @@ const transaction = new mongoose.Schema ({
    date: Date,
    description: String,
    amount: Number,
+   currentInstallment: Number,
+   totalInstallments: Number,
    type: String,
    category: String
 })

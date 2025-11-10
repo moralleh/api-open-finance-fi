@@ -7,7 +7,7 @@ const findByIdAcc = AccountController.findById;
 class TransactionController{
     
     static async create(req,res) {
-        let {idAcc, description, amount, type, category} = req.body;
+        let {idAcc, description, amount, type, category, totalInstallments, currentIntallment} = req.body;
 
         if(!idAcc){
             return res.status(400).json({err: "O id da conta é obrigatório!"});
@@ -16,6 +16,10 @@ class TransactionController{
         let accountExist = findByIdAcc(idAcc);
         if (!accountExist){
             return res.status(404).json({err: "Conta não encontrada!"});
+        }
+
+        if (accountExist.type == "credit-card" && !totalInstallments){
+            return res.status(400).json({err: "O total do número de parcelas é obrigatório!"});
         }
 
         if(!description){
@@ -53,6 +57,8 @@ class TransactionController{
             transaction.amount = amount;
             transaction.type = typeNew;
             transaction.category = category;
+            transaction.totalInstallments = totalInstallments || 1;
+            transaction.currentInstallment = currentIntallment || 1;
 
             await transaction.save();
             console.log(transaction);
