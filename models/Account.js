@@ -20,6 +20,7 @@ account.pre("save", generateNumber());
 account.pre("save", function (next) {
   if (this.type !== "credit-card") {
     this.creditCardLimit = undefined;
+    this.availableLimit = undefined;
   }
   next();
 });
