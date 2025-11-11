@@ -7,13 +7,13 @@ const findByIdAcc = AccountController.findById;
 class TransactionController{
     
     static async create(req,res) {
-        let {idAcc, description, amount, type, category, totalInstallments, currentIntallment} = req.body;
+        let {accountId, description, amount, type, category, totalInstallments, currentIntallment} = req.body;
 
-        if(!idAcc){
+        if(!accountId){
             return res.status(400).json({err: "O id da conta é obrigatório!"});
         }
 
-        let accountExist = findByIdAcc(idAcc);
+        let accountExist = await findByIdAcc(accountId);
         if (!accountExist){
             return res.status(404).json({err: "Conta não encontrada!"});
         }
@@ -33,11 +33,11 @@ class TransactionController{
             return res.status(400).json({err: "O tipo da transação é obrigatório!"})
         } 
         let typeNew = type.toLowerCase();
-        if(typeNew != "credit" && typeNew != "debit"){
+        if(typeNew != "credit" && typeNew != "debit" && typeNew != "credit-card"){
             return res.status(400).json({err: "O tipo de transação não existe!"})
         }
         
-        if (accountExist.type == "credit-card"){
+        if (accountExist.type === "credit-card"){
             if (!totalInstallments){
                 return res.status(400).json({err: "O total do número de parcelas é obrigatório!"});
             }
@@ -47,19 +47,18 @@ class TransactionController{
             if(currentIntallment > totalInstallments){
                 return res.status(400).json({err: "O número da parcela atual não pode ser maior que o total de parcelas!"});
             }
-            let validAmount = await this.checkCreditCardLimit(idAcc, type, amount);
-            if(!validAmount){
+            const validLimit = await this.checkCreditCardLimit(accountId, type, amount);
+            if(!validLimit){
                 return res.status(403).json({err: "O valor da transação é maior do que o limite do cartão de crédito"});
             }
 
         } else {
             totalInstallments = 1;
             currentIntallment = 1;
-        }
-
-        let validAmount = await this.checkBalance(idAcc,type,amount);
-        if(!validAmount){
-            return res.status(403).json({err: "O saldo da conta é insuficiente para realizar transação!"});
+            const validAmount = await this.checkBalance(accountId,type,amount);
+            if(!validAmount){
+                return res.status(403).json({err: "O saldo da conta é insuficiente para realizar transação!"});
+            }
         }
 
         if(!category){
@@ -79,7 +78,7 @@ class TransactionController{
             await transaction.save();
             console.log(transaction);
             
-            let savetransactionInAcc = await AccountController.insertTransactionInAcc(idAcc, transaction);
+            const savetransactionInAcc = await AccountController.insertTransactionInAcc(accountId, transaction);
 
             if(!savetransactionInAcc){
                 return res.status(500).json({ err: "Erro ao criar a transação." });
@@ -89,48 +88,74 @@ class TransactionController{
             
         }catch(err){
             console.error(err);
-            return res.status(500).json({ err: "Erro ao criar a conta." });
+            return res.status(500).json({ err: "Erro ao criar a transação." });
         }
     }
 
-    static async checkBalance(idAcc, type, amount) {
-        const account = await findByIdAcc(idAcc);
-        if(type == "debit" && account.balance < amount){
+    static async checkBalance(accountId, type, amount) {
+        const account = await findByIdAcc(accountId);
+        if(type === "debit" && account.balance < amount){
             return false;
         }
         return true;
     }
 
-    static async checkCreditCardLimit(idAcc, type, amount) {
-        const account = await findByIdAcc(idAcc);
-        if(type == "credit-card" && account.availableLimit < amount){
+    static async checkCreditCardLimit(accountId, type, amount) {
+        const account = await findByIdAcc(accountId);
+        if(type === "credit-card" && account.availableLimit < amount){
             return false;
         }
         return true;
     }
 
-    static async showTransactions(req,res) {
-       let {idAcc} = req.params;
-
-        if(!idAcc){
-            return res.status(400).json({err: "O id da conta é obrigatório!"})
+    static async findById(id){
+        try {
+            const transaction = await Transaction.findById(id);
+            return transaction;
+        } catch (err) {
+            console.log("Erro ao buscar conta: " + err);
+            return null;
         }
-        
-        try{
-            let account = await findByIdAcc(idAcc);
-            if(!account){
-                return res.status(404).json({err: "Conta não encontrada!"});
-            }
-            res.status(200).json({
-                idConta: account._id,
-                transactions: account.transactions
+    }
+
+    static async getTransactions(accountId) { 
+    const account = await findByIdAcc(accountId);
+    if (!account) {
+        throw new Error("Conta não encontrada");
+    }
+
+    const transactions = [];
+
+    for (const transactionId of account.transactions) {
+        const transaction = await this.findById(transactionId);
+        if (transaction) {
+            transactions.push(transaction);
+        }
+    }
+
+    return transactions;
+}
+
+    static async showTransactions(req, res) {
+        const { accountId } = req.params;
+
+        if (!accountId) {
+            return res.status(400).json({ err: "O id da conta é obrigatório!" });
+        }
+
+        try {
+            const transactions = await this.getTransactions(accountId);
+            return res.status(200).json({
+                idConta: accountId,
+                transactions: transactions
             });
-        }catch(err){
-            res.status(500).json({err: "Erro interno ao buscar as transações."});
+        } catch (err) {
+            if (err.message === "Conta não encontrada") {
+                return res.status(404).json({ err: err.message });
+            }
+            return res.status(500).json({ err: "Erro interno ao buscar as transações." });
         }
     }
-
-
 }
 
 module.exports = TransactionController;
