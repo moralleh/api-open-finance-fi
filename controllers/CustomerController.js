@@ -58,10 +58,10 @@ class CustomerController{
         }
     }
 
-    static async insertAccInCustomer(id, newAccount) {
+    static async insertAccInCustomer(id, idAccount) {
         try{
-            let customer = await CustomerController.findById(id);
-            customer.accounts.push(newAccount);
+            const customer = await this.findById(id);
+            customer.accounts.push(idAccount);
             await customer.save();
             return true;
         }catch(err){
@@ -69,6 +69,7 @@ class CustomerController{
             return false;
         }
     }
+
 
 }
 
