@@ -85,25 +85,40 @@ class AccountController{
         }
     }
 
-    static async insertTransactionInAcc(idAcc, newTransaction) {
+    static async insertTransactionInAcc(idAcc, transaction) {
         try{
-            let account = await AccountController.findById(idAcc);
+            const account = await this.findById(idAcc);
 
-            if(newTransaction.type == "credit"){
-                account.balance += newTransaction.amount;
-            }else{
-                account.balance -= newTransaction.amount;
-            }
+            if (account.type === "credit-card"){
+                let installmentValue = transaction.amount / transaction.totalInstallments;
 
-            account.transactions.push(newTransaction)
-            await account.save();
+                if (transaction.type === "credit"){
+                    account.balance -= installmentValue;
+                    account.availableLimit += installmentValue;
+                    return true;
+                } else {
+                    account.availableLimit -= installmentValue;
+                    return true;
+                }
+            } else {
+                if(transaction.type === "credit"){
+                    account.balance += transaction.amount;
+                }else{
+                    account.balance -= transaction.amount;
+                }
 
-            return true;
+                account.transactions.push(transaction._id);
+                await account.save();
+                return true;
+                }
+            
         }catch(err){
             console.log(err)
             return false;
         }
     }
+
+    
 
     
 
