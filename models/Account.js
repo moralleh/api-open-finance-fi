@@ -12,7 +12,7 @@ const account = new mongoose.Schema ({
     creditCardLimit: Number,
     availableLimit: Number,
     transactions: [transaction]
-})
+});
 
 account.pre("save", generateID("acc"));
 account.pre("save", generateNumber());

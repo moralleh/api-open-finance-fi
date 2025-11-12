@@ -10,7 +10,7 @@ const transaction = new mongoose.Schema ({
    totalInstallments: Number,
    type: String,
    category: String
-})
+});
 
 transaction.pre("save", generateID("txn"));
 

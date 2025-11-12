@@ -8,7 +8,7 @@ const customer = new mongoose.Schema ({
     cpf: String,
     email: String,
     accounts: [account]
-})
+});
 
 customer.pre("save", generateID("cus"));
 
