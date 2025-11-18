@@ -14,9 +14,13 @@ app.use(express.urlencoded({ extended: true }));
 const internalRoutes = require("./routes/internal.routes");
 const openFinanceRoutes = require("./routes/openfinance.routes");
 
-app.use("/", internalRoutes);
+const {
+    verifyInternalKey,
+    verifyOpenFinanceKey
+} = require("./middlewares/auth.middleware");
 
-app.use("/openfinance", openFinanceRoutes);
+app.use("/openfinance", verifyOpenFinanceKey, openFinanceRoutes);
+app.use("/", verifyInternalKey, internalRoutes);
 
 mongoose.connect(mongoURI)
     .then(() => console.log('MongoDB conectado!'))

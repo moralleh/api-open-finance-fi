@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const CustomerController = require("../controllers/OpenFinanceCustomerController");
 const ConsentController = require("../controllers/OpenFinanceConsentController");
 const InstitutionController = require("../controllers/OpenFinanceInstitutionController");
+
+const AccountController = require("../controllers/AccountController");
+const CustomerController = require("../controllers/CustomerController");
 
 router.get("/institution", (req, res) => 
     InstitutionController.getInstitutionData(req,res));
@@ -22,10 +24,10 @@ router.get("/customers/:id/accounts", (req, res) =>
 );
 
 router.get("/accounts/:id/balance", (req, res) =>
-    accountController.getBalance(req, res)
+    AccountController.getBalance(req, res)
 );
 router.get("/accounts/:id/transactions", (req, res) =>
-    accountController.getTransactions(req, res)
+    AccountController.getTransactions(req, res)
 );
 
 module.exports = router;
