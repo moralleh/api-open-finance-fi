@@ -17,12 +17,4 @@ const account = new mongoose.Schema ({
 account.pre("save", generateID("acc"));
 account.pre("save", generateNumber());
 
-account.pre("save", function (next) {
-  if (this.type !== "credit-card") {
-    this.creditCardLimit = undefined;
-    this.availableLimit = undefined;
-  }
-  next();
-});
-
 module.exports = account;
