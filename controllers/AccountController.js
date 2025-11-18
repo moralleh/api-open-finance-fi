@@ -1,128 +1,123 @@
-const mongoose = require("mongoose");
-const accountSchema = require("../models/Account");
-const Account = mongoose.model("Account", accountSchema);
-const CustomerController = require("../controllers/CustomerController");
-const findByIdCust = CustomerController.findById;
-
-const branchFixed = "0001";
-const creditCardLimitFix = 500;
+const CustomerServices = require("../services/CustomerServices");
+const AccountServices = require("../services/AccountServices");
 
 class AccountController{
 
     static async create(req,res) {
+        const branchFixed = "0001";
+        const creditCardLimitFix = 500;
+
         let {idCustomer, type, creditCardLimit} = req.body;
 
         if(!idCustomer){
-            return res.status(400).json({err: "O id do cliente é obrigatório!"})
+            return res.status(400).json({error: "O id do cliente é obrigatório!"})
         }
 
-        let customerExist = await findByIdCust(idCustomer);
+        let customerExist = await CustomerServices.findById(idCustomer);
         if (!customerExist){
-            return res.status(404).json({err: "Cliente não encontrado!"});
+            return res.status(404).json({error: "Cliente não encontrado!"});
         }
 
         if(!type){
-            return res.status(400).json({err: "O tipo da conta é obrigatório!"})
+            return res.status(400).json({error: "O tipo da conta é obrigatório!"})
         } 
         let typeNew = type.toLowerCase();
         if(typeNew != "checking" && typeNew != "salvings" && typeNew != "credit-card"){
-            return res.status(400).json({err: "O tipo de conta não existe!"})
+            return res.status(400).json({error: "O tipo de conta não existe!"})
         }
-        
-        try{
-            let account = new Account();
-            account.type = typeNew;
-            account.branch = branchFixed;
-            account.balance = 0;
-            account.creditCardLimit = creditCardLimit || creditCardLimitFix;
-            account.availableLimit = creditCardLimit || creditCardLimitFix;
 
-            await account.save();
-            console.log(account);
-            
-            let saveAccountInCustomer = await CustomerController.insertAccInCustomer(idCustomer, account);
-            
-            if(!saveAccountInCustomer){
-                return res.status(500).json({ err: "Erro ao criar a conta." });
+        let creditCardLimitSave = null;
+
+        if (typeNew === "credit-card") {
+
+            if (creditCardLimit <= 0 ) {
+                return res.status(400).json({ error: "O limite do cartão é inválido!"});
             }
 
-            return res.status(201).send("Conta criada com sucesso!");
+            if (!creditCardLimit) {
+                creditCardLimitSave = creditCardLimitFix;
+            } else {
+                creditCardLimitSave = Number(creditCardLimit);
+            }
+        }
+
+        try{
+            const account = {
+                type: typeNew,
+                branch: branchFixed,
+                balance: 0.0, 
+                creditCardLimit: typeNew === "credit-card" 
+                    ? creditCardLimitSave 
+                    : undefined,
+                availableLimit: typeNew === "credit-card" 
+                    ? creditCardLimitSave 
+                    : 0.0
+            }
             
-        }catch(err){
-            console.error(err);
-            return res.status(500).json({ err: "Erro ao criar a conta." });
+            const idAccountSave = await AccountServices.saveAccount(account);
+
+            const saveAccountInCustomer = await CustomerServices.insertAccInCustomer(idCustomer, idAccountSave);
+
+            if (idAccountSave && saveAccountInCustomer) {
+                return res.status(201).send("Conta criada com sucesso!");
+            }
+
+        }catch(error){
+            console.error(error);
+            return res.status(500).json({ error: error.message });
         }
     }
 
-    static async findById(id) {
-        try {
-            let account = await Account.findById(id);
-            return account;
-        } catch (err) {
-            console.log("Erro ao buscar conta: " + err);
-            return null;
-        }
-    }
-
-    static async showBalance(req,res) {
-        let {id} = req.params;
+    static async getBalance(req,res) {
+        const {id} = req.params;
 
         if(!id){
-            return res.status(400).json({err: "O id da conta é obrigatório!"})
+            return res.status(400).json({error: "O id da conta é obrigatório!"})
         }
         
-        try{
-            let account = await AccountController.findById(id);
-            if(!account){
-                return res.status(404).json({err: "Conta não encontrada!"});
-            }
-            res.status(200).json({
-                id: account._id,
-                balance: account.balance
+        try{ 
+            const balance = await AccountServices.getBalance(id);   
+            return res.status(200).json({ 
+                id: id,
+                balance: balance
+             });
+
+        }catch(error){
+            const statusCode = error.status || 500;
+            return res.status(statusCode).json({error: error.message });
+        }
+    }
+
+    static async getTransactions(req, res) {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ error: "O id da conta é obrigatório!" });
+        }
+
+        try {
+            const transactions = await AccountServices.getTransactions(id);
+            return res.status(200).json({
+                idConta: id,
+                transactions: transactions
             });
-        }catch(err){
-            res.status(500).json({err: "Erro interno ao buscar o saldo."});
+        } catch (error) {
+            const statusCode = error.status || 500;
+            return res.status(statusCode).json({error: error.message });
         }
     }
 
-    static async insertTransactionInAcc(idAcc, transaction) {
+    static async getAll(req,res){
         try{
-            const account = await this.findById(idAcc);
-
-            if (account.type === "credit-card"){
-                let installmentValue = transaction.amount / transaction.totalInstallments;
-
-                if (transaction.type === "credit"){
-                    account.balance -= installmentValue;
-                    account.availableLimit += installmentValue;
-                    return true;
-                } else {
-                    account.availableLimit -= installmentValue;
-                    return true;
-                }
-            } else {
-                if(transaction.type === "credit"){
-                    account.balance += transaction.amount;
-                }else{
-                    account.balance -= transaction.amount;
-                }
-
-                account.transactions.push(transaction._id);
-                await account.save();
-                return true;
-                }
-            
-        }catch(err){
-            console.log(err)
-            return false;
+            const accounts = await AccountServices.getAll();
+            res.status(200).json({ accounts });
+        }catch(error){
+            const statusCode = error.status || 500;
+            return res.status(statusCode).json({error: error.message });
         }
     }
-
-    
-
-    
-
 }
+
 
 
 module.exports = AccountController;

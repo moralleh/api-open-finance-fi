@@ -1,6 +1,4 @@
-const customerSchema = require("../models/Customer");
-const mongoose = require("mongoose");
-const Customer = mongoose.model("Customer", customerSchema);
+const CustomerServices = require("../services/CustomerServices");
 const { checkDuplicateCPF, validateCPF } = require("../utils/validateCPF");
 
 class CustomerController{
@@ -9,68 +7,88 @@ class CustomerController{
         let {name, cpf, email} = req.body;
 
         if(!name || name.length <= 2){
-            return res.status(403).json({err: "O nome é inválido!"});
+            return res.status(403).json({error: "O nome é inválido!"});
         }
 
         if(!cpf){
-            return res.status(403).json({err: "O cpf é inválido!"});
+            return res.status(403).json({error: "O cpf é inválido!"});
         }
 
         cpf = String(cpf).replace(/\D/g, '');
 
         let cpfExist = await checkDuplicateCPF(cpf);
         if(cpfExist){
-            return res.status(409).json({err: "Já existe um cliente cadastrado com esse cpf."});
+            return res.status(409).json({error: "Já existe um cliente cadastrado com esse cpf."});
         }
         
         let cpfValidate = validateCPF(cpf);
         if(!cpfValidate){
-            return res.status(400).json({err: "O cpf é inválido!"});
+            return res.status(400).json({error: "O cpf é inválido!"});
         }
 
         if(!email){
-            return res.status(403).json({err: "O email é inválido!"});
+            return res.status(403).json({error: "O email é inválido!"});
         }
 
         try{
-            let customer = new Customer();
-            customer.name = name;
-            customer.cpf = cpf;
-            customer.email = email;
-
-            await customer.save();
-            console.log(customer);
-            return res.status(201).send("Cliente criado com sucesso!");
+            const customer = {
+                name: name,
+                cpf: cpf,
+                email: email
+            }
+            const resultSave = await CustomerServices.saveCustomer(customer);
+            if (resultSave) {
+                return res.status(201).send("Cliente criado com sucesso!");
+            }
             
-        }catch(err){
-            console.error(err);
-            return res.status(500).json({ err: "Erro interno ao criar o cliente." });
+        }catch(error){
+            console.error(error);
+            return res.status(500).json({ error: error.message });
         }
     }
 
-    static async findById(id) {
+    static async getById(req,res){
+        try {        
+            const customer = await CustomerServices.findById(req.params.id);
+            if (!customer) {
+                return res.status(404).json({ error: "Cliente não encontrado para o ID: " + req.params.id });
+            }
+
+            const { _id, name, cpf } = customer;
+            res.json({ _id, name, cpf });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }        
+    }
+
+    static async getAccounts(req,res){
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ error: "O id do cliente é obrigatório!" });
+        }
+
         try {
-            let customer = await Customer.findById(id);
-            return customer;
-        } catch (err) {
-            console.log("Erro ao buscar cliente: " + err);
-            return null;
+            const accounts = await CustomerServices.getAccounts(id);
+            return res.status(200).json({
+                idConta: id,
+                accounts: accounts
+            });
+        } catch (error) {
+            const statusCode = error.status || 500;
+            return res.status(statusCode).json({error: error.message });
         }
     }
 
-    static async insertAccInCustomer(id, idAccount) {
+    static async getAll(req,res){
         try{
-            const customer = await this.findById(id);
-            customer.accounts.push(idAccount);
-            await customer.save();
-            return true;
-        }catch(err){
-            console.log(err)
-            return false;
+            const customers = await CustomerServices.getAll();
+            res.status(200).json({ customers });
+        }catch(error){
+            const statusCode = error.status || 500;
+            return res.status(statusCode).json({error: error.message });
         }
     }
-
-
 }
 
 module.exports = CustomerController;
