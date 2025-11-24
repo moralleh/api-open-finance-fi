@@ -7,8 +7,12 @@ const InstitutionController = require("../controllers/OpenFinanceInstitutionCont
 const AccountController = require("../controllers/AccountController");
 const CustomerController = require("../controllers/CustomerController");
 
+// Rotas de Instituição
+
 router.get("/institution", (req, res) => 
     InstitutionController.getInstitutionData(req,res));
+
+// Rotas de Consentimentos
 
 router.get("/consents", (req, res) => 
     ConsentController.getAll(req, res));
@@ -16,12 +20,16 @@ router.get("/consents", (req, res) =>
 router.get("/consents/:id", (req, res) => 
     ConsentController.getById(req, res));
 
+// Rotas de Clientes
+
 router.get("/customers/:id", (req, res) =>
     CustomerController.getById(req, res)
 );
 router.get("/customers/:id/accounts", (req, res) =>
     CustomerController.getAccounts(req, res)
 );
+
+// Rotas de Contas e Transações
 
 router.get("/accounts/:id/balance", (req, res) =>
     AccountController.getBalance(req, res)
