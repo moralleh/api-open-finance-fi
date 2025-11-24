@@ -26,11 +26,12 @@ class ConsentServices{
         }
     }
 
-    static async findByIdCustomerAndApp(customerId, clientAppId) {
+    static async findActiveByCustomerAndApp(customerId, clientAppId) {
         try{
             const consent = await Consent.findOne({ 
                 customerId: customerId, 
-                clientAppId: clientAppId, 
+                clientAppId: clientAppId,
+                status: "active", 
                 expiresDate: { $gt: new Date() } 
             });
             if(consent) return true;
@@ -69,8 +70,6 @@ class ConsentServices{
            throw new Error("Erro interno ao buscar consentimentos:" + error.message);
         }
     }
-
-
 }
 
 module.exports = ConsentServices;
