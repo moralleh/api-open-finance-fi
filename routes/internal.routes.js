@@ -6,7 +6,16 @@ const CustomerController = require("../controllers/CustomerController");
 const AccountController = require("../controllers/AccountController");
 const TransactionController = require("../controllers/TransactionController");
 
+const ConsentController = require("../controllers/OpenFinanceConsentController");
+
 router.get("/", HomeController.index);
+
+// Rotas de Gerenciamento de Consentimento (acesso interno)
+router.post("/openfinance/consents", (req, res) => 
+    ConsentController.create(req, res));
+
+router.delete("/openfinance/consents/:id", (req, res) => 
+    ConsentController.revoke(req, res));
 
 // Rotas de clientes
 router.post("/customers", (req, res) => 
