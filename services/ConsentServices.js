@@ -6,8 +6,7 @@ class ConsentServices{
     static async findById(id) {
         try{
             const consent = await Consent.findById(id);
-            console.log(consent)
-            return true;
+            return consent;
         } catch(error) {
             throw new Error("Erro ao buscar consentimento: " + error.message);
         }
