@@ -53,11 +53,9 @@ class CustomerController{
             if (!customer) {
                 return res.status(404).json({ error: "Cliente não encontrado para o ID: " + req.params.id });
             }
-
-            const { _id, name, cpf } = customer;
-            res.json({ _id, name, cpf });
+            return res.status(200).json({ customer });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return res.status(500).json({ error: error.message });
         }        
     }
 
@@ -83,10 +81,10 @@ class CustomerController{
     static async getAll(req,res){
         try{
             const customers = await CustomerServices.getAll();
-            res.status(200).json({ customers });
+            return res.status(200).json({ customers });
         }catch(error){
-            const statusCode = error.status || 500;
-            return res.status(statusCode).json({error: error.message });
+            console.error(error);
+            return res.status(500).json({ error: error.message });
         }
     }
 }

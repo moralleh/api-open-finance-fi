@@ -94,8 +94,8 @@ class TransactionController{
             const transactions = await TransactionServices.getAll();
             res.status(200).json({ transactions });
         }catch(error){
-            const statusCode = error.status || 500;
-            return res.status(statusCode).json({error: error.message });
+            console.error(error);
+            return res.status(500).json({ error: error.message });
         }
     }
 }

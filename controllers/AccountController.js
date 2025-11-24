@@ -112,8 +112,8 @@ class AccountController{
             const accounts = await AccountServices.getAll();
             res.status(200).json({ accounts });
         }catch(error){
-            const statusCode = error.status || 500;
-            return res.status(statusCode).json({error: error.message });
+            console.error(error);
+            return res.status(500).json({ error: error.message });
         }
     }
 }
