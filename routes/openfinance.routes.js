@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const ConsentController = require("../controllers/OpenFinanceConsentController");
 const InstitutionController = require("../controllers/OpenFinanceInstitutionController");
+const ConsentController = require("../controllers/OpenFinanceConsentController");
 
-const AccountController = require("../controllers/AccountController");
-const CustomerController = require("../controllers/CustomerController");
+const CustomerController = require("../controllers/OpenFinanceCustomerController");
+const AccountController = require("../controllers/OpenFinanceAccountController");
 
 // Rotas de Instituição
 
