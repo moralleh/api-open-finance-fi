@@ -1,7 +1,5 @@
-const mongoose = require("mongoose");
-const consentSchema = require("../models/Consent");
-const Consent = mongoose.model("Consent", consentSchema);
-const CustomerController = require("./CustomerController");
+const CustumerServices = require("../services/CustomerServices");
+const ConsentServices = require("../services/ConsentServices");
 
 class OpenFinanceConsentController {
     constructor(){
@@ -9,13 +7,15 @@ class OpenFinanceConsentController {
     }
 
     static async create(req,res) {
+        let {customerId, clientAppId, permissions} = req.body;
+
         try {
-            const customer = await CustomerController.findById(req.body.customerId);
+            const customer = await CustumerServices.findById(customerId);
             if (!customer) {
                 return res.status(404).json({ error: "Cliente não encontrado" });
             }
 
-            const existingConsent = await this.findByIdCustomerAndApp(req.body.customerId,req.clientAppId);
+            const existingConsent = await ConsentServices.findByIdCustomerAndApp(customerId,clientAppId);
 
             if (existingConsent) {
                 return res.status(409).json({
@@ -25,7 +25,7 @@ class OpenFinanceConsentController {
             }
 
             const validPermissions = ["accounts", "transactions"];
-            const invalidPermissions = req.body.permissions.filter(
+            const invalidPermissions = permissions.filter(
                 (p) => !validPermissions.includes(p)
             );
 
@@ -37,100 +37,67 @@ class OpenFinanceConsentController {
                 });
             }
 
-            // Cria o novo consentimento
-            const consent = new Consent();
-            consent.customerId = req.body.customerId;
-            consent.clientAppId = req.clientAppId;
-            consent.permissions = req.body.permissions;
-            consent.status = "active";
-            consent.createdAt = new Date();
-            consent.expiresDate = new Date(Date.now() + this.consentExpirationMs);
+            const consent = {
+                customerId: customerId,
+                clientAppId: clientAppId,
+                permissions: permissions,
+                status: "active",
+                createdAt: new Date(),
+                expiresDate: new Date(Date.now() + this.consentExpirationMs)
+            }
 
-            await consent.save();
+            const resultSave = await ConsentServices.saveConsent(consent);
 
-            res.status(201).json(consent);
+            if(resultSave) {
+                res.status(201).json("Consentimento criado com sucesso!");
+            }
 
         } catch (error) {
-            if (
-                error.message.includes("obrigatório") ||
-                error.message.includes("inválido")
-            ) {
-                return res.status(400).json({ error: error.message });
+            console.error(error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    static async revoke(req, res) {
+        try {
+            const consent = await ConsentServices.findById(req.params.id);
+            if (!consent) {
+                return res.status(404).json({ error: "Consentimento não encontrado" });
             }
+
+            if (consent.clientAppId !== clientAppId) {
+                return res.status(403).json({ error: "Acesso não autorizado a este consentimento" });
+            }
+
+            const resultRevoked = await ConsentServices.updateStatus(id, "revoked")
+
+            if (resultRevoked) {
+                res.status(204).json("Consentimento revogado com sucesso!");
+            }
+            
+        } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 
-    static async findByIdCustomerAndApp(customerId, clientAppId) {
+    static async getAll(req,res){
         try{
-            const consent = await Consent.findOne({ customerId: customerId, clientAppId: clientAppId });
-            return consent;
-        } catch{
-            console.log(err);
-            return null;
+            const consents = await ConsentServices.getAll();
+            res.status(200).json({ consents });
+        }catch(error){
+            console.error(error);
+            return res.status(500).json({ error: error.message });
         }
     }
 
-    static async findById(id) {
-        try{
-            const consent = await Consent.findById(id);
-            return consent;
-        } catch {
-            console.log(err);
-            return null;
-        }
-    }
     static async getById(req,res) {
-        const consent = await this.findById(req.params.id);
+        const consent = await ConsentServices.findById(req.params.id);
         if (!consent){
             return res.status(404).json({ error: "Consentimento não encontrado" });
         }
         return res.status(200).json(consent);
     }
 
-    static async revoke(req, res) {
-        try {
-            const consent = await this.findById(req.params.id);
-            if (!consent) {
-                return res.status(404).json({ error: "Consentimento não encontrado" });
-            }
-
-            if (consent.clientAppId !== req.clientAppId) {
-                return res.status(403).json({ error: "Acesso não autorizado a este consentimento" });
-            }
-
-            const revoked = await Consent.findByIdAndUpdate(
-                req.params.id, 
-                { status: "revoked" },
-                { new: true }
-            );
-                
-            res.status(204).send();
-
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
-
-    static async getAll(req, res) {
-        try {
-            const consents = await Consent.find({
-                status: "active",
-                expiresDate: { $gt: new Date() },
-            });
-
-            if (consents.length === 0){
-                return res.status(404).json({ error: "Não há nenhum consentimento." });
-            }
-
-            return res.status(200).json(consents);
-        } catch (error) {
-           return res.status(500).json({ error: error.message });
-        }
-    }
-
-
-    
 }
 
 
