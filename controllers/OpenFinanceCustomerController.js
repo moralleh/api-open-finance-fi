@@ -7,10 +7,6 @@ class OpenFinanceCustomerController{
             let { id } = req.params;
             let { clientAppId } = req.body;
 
-            if (!id) {
-                return res.status(400).json({ error: "O id do cliente é obrigatório!" });
-            }
-
             if (!clientAppId) {
                 return res.status(400).json({ error: "O id da aplicação é obrigatório!" });
             }
@@ -38,11 +34,8 @@ class OpenFinanceCustomerController{
 
     static async getAccounts(req,res){
         try {
-            const { id } = req.params;
-
-            if (!id) {
-                return res.status(400).json({ error: "O id do cliente é obrigatório!" });
-            }
+            let { id } = req.params;
+            let { clientAppId } = req.body;
 
             if (!clientAppId) {
                 return res.status(400).json({ error: "O id da aplicação é obrigatório!" });
