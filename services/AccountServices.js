@@ -122,18 +122,9 @@ class AccountServices {
     static async getAll(){
         try{
             const accounts = await Account.find();
-            if (accounts.length === 0) {
-                const error = new Error("Nenhuma conta cadastrada");
-                error.status = 404;
-                throw error;
-            }
             return accounts;
         }catch(error){
-            if (error.status) throw error;  
-
-            const internalError = new Error("Erro interno ao buscar conta: " + error.message);
-            internalError.status = 500;
-            throw internalError;
+           throw new Error("Erro interno ao buscar contas:" + error.message);
         }
     }
 }

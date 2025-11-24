@@ -39,18 +39,9 @@ class TransactionServices{
     static async getAll(){
         try{
             const transactions = await Transaction.find();
-            if (transactions.length === 0) {
-                const error = new Error("Nenhuma transação cadastrada");
-                error.status = 404;
-                throw error;
-            }
             return transactions;
         }catch(error){
-            if (error.status) throw error;  
-
-            const internalError = new Error("Erro interno ao buscar transações: " + error.message);
-            internalError.status = 500;
-            throw internalError;
+            throw new Error("Erro interno ao buscar transações:" + error.message);
         }
     }
    

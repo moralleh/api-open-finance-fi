@@ -53,7 +53,7 @@ class CustomerServices {
 
             const accounts = [];
             for (const accountId of customer.accounts) {
-                const account = AccountServices.findById(accountId);
+                const account = await AccountServices.findById(accountId);
                 if (account) {
                     accounts.push(transaction);
                 }
@@ -71,18 +71,9 @@ class CustomerServices {
     static async getAll(){
         try{
             const customers = await Customer.find();
-            if (customers.length === 0) {
-                const error = new Error("Nenhum cliente cadastrado");
-                error.status = 404;
-                throw error;
-            }
             return customers;
         }catch(error){
-            if (error.status) throw error;  
-
-            const internalError = new Error("Erro interno ao buscar clientes: " + error.message);
-            internalError.status = 500;
-            throw internalError;
+           throw new Error("Erro interno ao buscar clientes:" + error.message);
         }
     }
 }
