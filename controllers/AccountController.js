@@ -5,7 +5,7 @@ class AccountController{
 
     static async create(req,res) {
         const branchFixed = "0001";
-        const creditCardLimitFix = 500;
+        const creditCardLimitFix = 500.00;
 
         let {idCustomer, type, creditCardLimit} = req.body;
 

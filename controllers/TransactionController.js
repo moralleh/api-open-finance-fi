@@ -21,15 +21,27 @@ class TransactionController{
 
         if(!description){
             return res.status(400).json({error: "A descrição da transação é obrigatória!"});
+        }  
+
+        // Validar amount ------------------------------------------------------------
+        
+        if (amount === undefined || amount === null) {
+            return res.status(400).json({ error: "O valor da transação é obrigatório!" });
         }
 
-        if(!amount){
-            return res.status(400).json({error: "O valor da transação é obrigatório!"});
+        // Converter para número
+        amount = Number(amount);
+
+        if (isNaN(amount)) {
+            return res.status(400).json({ error: "O valor da transação deve ser um número válido!" });
         }
-        if(amount <= 0){
-            return res.status(400).json({error: "O valor da transação é inválido!"})
-        }     
-          
+
+        if (amount <= 0) {
+            return res.status(400).json({ error: "O valor da transação é inválido!" });
+        }
+         
+        // ------------------------------------------------------------------------
+
         if(!type){
             return res.status(400).json({error: "O tipo da transação é obrigatório!"})
         } 
@@ -39,23 +51,37 @@ class TransactionController{
         }
         
         if (accountExist.type === "credit-card"){
-            if (!totalInstallments){
-                return res.status(400).json({error: "O total do número de parcelas é obrigatório!"});
+            if (totalInstallments == null) {
+                return res.status(400).json({ error: "O total do número de parcelas é obrigatório!" });
             }
-            if (totalInstallments <= 0 || currentIntallment <= 0){
-                return res.status(400).json({error: "O número de parcelas é inválido!"});
+            if (currentIntallment == null) {
+                return res.status(400).json({ error: "O número da parcela atual é obrigatório!" });
             }
-            if(currentIntallment > totalInstallments){
-                return res.status(400).json({error: "O número da parcela atual não pode ser maior que o total de parcelas!"});
+
+            // Converter para número
+            totalInstallments = Number(totalInstallments);
+            currentIntallment = Number(currentIntallment);
+
+            if (isNaN(totalInstallments) || isNaN(currentIntallment)) {
+                return res.status(400).json({ error: "Os valores das parcelas devem ser números válidos!" });
             }
-            const validCreditLimit = await TransactionServices.checkLimit(accountExist.creditCardLimit, amount);
+
+            if (totalInstallments <= 0 || currentIntallment <= 0) {
+                return res.status(400).json({ error: "O número de parcelas deve ser maior que zero!" });
+            }
+
+            if (currentIntallment > totalInstallments) {
+                return res.status(400).json({ error: "A parcela atual não pode ser maior que o total de parcelas!" });
+            }
+
+            const validCreditLimit = await TransactionServices.validlimit(accountExist.creditCardLimit, amount);
             if(!validCreditLimit){
                 return res.status(403).json({error: "O valor da transação é maior do que o limite do cartão de crédito"});
             }
 
         } else {
             if (accountExist.type === "debit") {
-                const validAmount = await TransactionServices.checkLimit(accountExist.balance, amount);
+                const validAmount = await TransactionServices.validlimit(accountExist.balance, amount);
                 if(!validAmount){
                     return res.status(403).json({error: "O saldo da conta é insuficiente para realizar transação!"});
                 }
