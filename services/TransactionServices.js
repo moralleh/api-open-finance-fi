@@ -12,9 +12,9 @@ class TransactionServices{
         }
     }
     
-    static async checkLimit(value, amount) {
-        if (amount > value) return true;
-        return false;
+    static async validlimit(value, amount) {
+        if (amount > value) return false;
+        return true;
     }
 
     static async saveTransaction(newTransaction){
