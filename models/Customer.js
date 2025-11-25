@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const account = require("./Account");
 const generateID = require("../middlewares/generateID");
 
 const customer = new mongoose.Schema ({
@@ -7,7 +6,7 @@ const customer = new mongoose.Schema ({
     name: String,
     cpf: String,
     email: String,
-    accounts: [account]
+    accounts: [String]
 });
 
 customer.pre("save", generateID("cus"));

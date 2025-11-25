@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const transaction = require("./Transaction");
 const generateID = require("../middlewares/generateID");
 const generateNumber = require("../middlewares/generateNumber");
 
@@ -11,7 +10,7 @@ const account = new mongoose.Schema ({
     balance: Number,
     creditCardLimit: Number,
     availableLimit: Number,
-    transactions: [transaction]
+    transactions: [String]
 });
 
 account.pre("save", generateID("acc"));
