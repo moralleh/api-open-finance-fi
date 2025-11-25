@@ -37,9 +37,9 @@ class AccountServices {
             const account = new Account();
             account.type = newAccount.type;
             account.branch = newAccount.branch;
-            account.balance = newAccount.balance;
+            account.balance = 0.0;
             account.creditCardLimit = newAccount.creditCardLimit;
-            account.availableLimit = newAccount.availableLimit;
+            account.availableLimit = 0.0;
 
             await account.save();
             console.log(account);
@@ -52,11 +52,6 @@ class AccountServices {
     static async insertTransactionInAcc(idAccount, transaction) {
         try{
             const account = await this.findById(idAccount);
-            if (!account) {
-                const error = new Error("Conta não encontrada para o ID: " + idAccount);
-                error.status = 404;
-                throw error; 
-            }
 
             /* Para contas de cartões de crédito: 
                 -> balance = fatura 
@@ -73,9 +68,11 @@ class AccountServices {
                     - representa o valor disponível
             */
 
-            if (transaction.type === "credit"){   
+            if (transaction.type === "credit"){
+                account.balance = Number(account.balance);   
                 account.balance += transaction.amount;
-                account.availableLimit += account.amount;
+                account.availableLimit = Number(account.availableLimit);
+                account.availableLimit += transaction.amount;
             } else {
                 account.balance -= transaction.amount;
                 account.availableLimit -= transaction.amount;
@@ -85,11 +82,7 @@ class AccountServices {
             return true;
     
         }catch(error){
-            if (error.status) throw error;  //Erro por não encontrar id da conta
-
-            const internalError = new Error("Erro interno ao buscar o saldo: " + error.message);
-            internalError.status = 500;
-            throw internalError;
+            throw new Error("Erro interno ao buscar o saldo: " + error.message);
         }
     }
 
