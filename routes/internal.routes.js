@@ -11,10 +11,10 @@ const ConsentController = require("../controllers/OpenFinanceConsentController")
 router.get("/", HomeController.index);
 
 // Rotas de Gerenciamento de Consentimento (acesso interno)
-router.post("/openfinance/consents", (req, res) => 
+router.post("/consents", (req, res) => 
     ConsentController.create(req, res));
 
-router.delete("/openfinance/consents/:id", (req, res) => 
+router.delete("/consents/:id", (req, res) => 
     ConsentController.revoke(req, res));
 
 // Rotas de clientes
