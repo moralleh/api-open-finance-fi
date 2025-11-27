@@ -68,10 +68,7 @@ class CustomerController{
 
         try {
             const accounts = await CustomerServices.getAccounts(id);
-            return res.status(200).json({
-                idConta: id,
-                accounts: accounts
-            });
+            return res.status(200).json(accounts);
         } catch (error) {
             const statusCode = error.status || 500;
             return res.status(statusCode).json({error: error.message });
