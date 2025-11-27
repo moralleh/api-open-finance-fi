@@ -7,12 +7,8 @@ class OpenFinanceAccountController{
     static async getBalance(req,res) {
         try{
             let {id} = req.params;
-            let { clientAppId } = req.body;
-
-            if (!clientAppId) {
-                return res.status(400).json({ error: "O id da aplicação é obrigatório!" });
-            }
-
+            
+            const clientAppId = "app_openfinance_001";
             const account = await AccountServices.findById(id);
             if (!account) {
                 return res.status(404).json({ error: "Conta não encontrada" });
@@ -52,12 +48,8 @@ class OpenFinanceAccountController{
     static async getTransactions(req, res) {
         try {
             let {id} = req.params;
-            let { clientAppId } = req.body;
-
-            if (!clientAppId) {
-                return res.status(400).json({ error: "O id da aplicação é obrigatório!" });
-            }
-
+            
+            const clientAppId = "app_openfinance_001";
             const account = await AccountServices.findById(id);
             if (!account) {
                 return res.status(404).json({ error: "Conta não encontrada" });

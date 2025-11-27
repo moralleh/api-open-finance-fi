@@ -55,7 +55,7 @@ class CustomerServices {
             for (const accountId of customer.accounts) {
                 const account = await AccountServices.findById(accountId);
                 if (account) {
-                    accounts.push(transaction);
+                    accounts.push(account);
                 }
             }
             return accounts;

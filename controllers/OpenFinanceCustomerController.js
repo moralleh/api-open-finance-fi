@@ -5,12 +5,8 @@ class OpenFinanceCustomerController{
     static async getById(req,res){
         try { 
             let { id } = req.params;
-            let { clientAppId } = req.body;
 
-            if (!clientAppId) {
-                return res.status(400).json({ error: "O id da aplicação é obrigatório!" });
-            }
-            
+            const clientAppId = "app_openfinance_001";
             const consent = await ConsentServices.findActiveByCustomerAndApp(
                 id,
                 clientAppId
@@ -35,12 +31,8 @@ class OpenFinanceCustomerController{
     static async getAccounts(req,res){
         try {
             let { id } = req.params;
-            let { clientAppId } = req.body;
 
-            if (!clientAppId) {
-                return res.status(400).json({ error: "O id da aplicação é obrigatório!" });
-            }
-            
+            const clientAppId = "app_openfinance_001";
             const consent = await ConsentServices.findActiveByCustomerAndApp(
                 id,
                 clientAppId
@@ -50,8 +42,10 @@ class OpenFinanceCustomerController{
                 return res.status(403).json({error: "Consentimento não autorizado para este cliente"});
             }
 
-            if (!consent.permissions.includes("accounts")) {
-                return res.status(403).json({ error: "Consentimento não possui permissão para acessar contas" });
+            if (!Array.isArray(consent.permissions) || !consent.permissions.includes("accounts")) {
+                return res.status(403).json({
+                    error: "Consentimento não possui permissão para acessar contas"
+                });
             }
 
             const accounts = await CustomerServices.getAccounts(id);
