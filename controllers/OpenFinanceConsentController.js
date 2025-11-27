@@ -2,10 +2,8 @@ const CustumerServices = require("../services/CustomerServices");
 const ConsentServices = require("../services/ConsentServices");
 
 class OpenFinanceConsentController {
-    constructor(){
-        this.consentExpirationMs = 6 * 30 * 24 * 60 * 60 * 1000;
-    }
-
+    static consentExpirationMs = 6 * 30 * 24 * 60 * 60 * 1000;
+    
     static async create(req,res) {
         let {customerId, clientAppId, permissions} = req.body;
 
@@ -15,7 +13,7 @@ class OpenFinanceConsentController {
                 return res.status(404).json({ error: "Cliente não encontrado" });
             }
 
-            const existingConsent = await ConsentServices.findByIdCustomerAndApp(customerId,clientAppId);
+            const existingConsent = await ConsentServices.findActiveByCustomerAndApp(customerId,clientAppId);
 
             if (existingConsent) {
                 return res.status(409).json({
