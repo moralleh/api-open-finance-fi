@@ -7,13 +7,13 @@ class AccountController{
         const branchFixed = "0001";
         const creditCardLimitFix = 500.00;
 
-        let {idCustomer, type, creditCardLimit} = req.body;
+        let {customerId, type, creditCardLimit} = req.body;
 
-        if(!idCustomer){
+        if(!customerId){
             return res.status(400).json({error: "O id do cliente é obrigatório!"})
         }
 
-        let customerExist = await CustomerServices.findById(idCustomer);
+        let customerExist = await CustomerServices.findById(customerId);
         if (!customerExist){
             return res.status(404).json({error: "Cliente não encontrado!"});
         }
@@ -56,7 +56,7 @@ class AccountController{
             
             const idAccountSave = await AccountServices.saveAccount(account);
 
-            const saveAccountInCustomer = await CustomerServices.insertAccInCustomer(idCustomer, idAccountSave);
+            const saveAccountInCustomer = await CustomerServices.insertAccInCustomer(customerId, idAccountSave);
 
             if (idAccountSave && saveAccountInCustomer) {
                 return res.status(201).send("Conta criada com sucesso!");
