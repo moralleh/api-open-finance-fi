@@ -49,9 +49,10 @@ class AccountServices {
         }
     }
 
-    static async insertTransactionInAcc(idAccount, transaction) {
+    static async insertTransactionInAcc(idAccount, transactionId) {
         try{
             const account = await this.findById(idAccount);
+            const transaction = await TransactionServices.findById(transactionId);
 
             /* Para contas de cartões de crédito: 
                 -> balance = fatura 
