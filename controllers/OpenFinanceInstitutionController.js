@@ -1,6 +1,6 @@
 const institution = {
     id: "if_225",
-    name: "bk_002",
+    name: "bnk_002",
     status: true
 }
 
