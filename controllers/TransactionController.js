@@ -4,7 +4,7 @@ const TransactionServices = require("../services/TransactionServices");
 class TransactionController{
     
     static async create(req,res) {
-        let {accountId, description, amount, type, category, totalInstallments, currentIntallment} = req.body;
+        let {accountId, description, amount, type, category, totalInstallments, currentInstallment, date} = req.body;
 
         if(!accountId){
             return res.status(400).json({error: "O id da conta é obrigatório!"});
@@ -22,6 +22,18 @@ class TransactionController{
         if(!description){
             return res.status(400).json({error: "A descrição da transação é obrigatória!"});
         }  
+
+        if(!date) {
+            return res.status(400).json({error: "A data é obrigatória!"});
+        }
+
+        const dateObj = new Date(date);
+
+        if (isNaN(dateObj.getTime())) {
+            return res.status(400).json({ error: "A data é inválida!" });
+        }
+
+        const dateNew = dateObj.toISOString().split('T')[0];
 
         // Validar amount ------------------------------------------------------------
         
@@ -46,7 +58,7 @@ class TransactionController{
             return res.status(400).json({error: "O tipo da transação é obrigatório!"})
         } 
         let typeNew = type.toLowerCase();
-        if(typeNew != "credit" && typeNew != "debit" && typeNew != "credit-card"){
+        if(typeNew != "credit" && typeNew != "debit"){
             return res.status(400).json({error: "O tipo de transação não existe!"})
         }
         
@@ -54,23 +66,23 @@ class TransactionController{
             if (totalInstallments == null) {
                 return res.status(400).json({ error: "O total do número de parcelas é obrigatório!" });
             }
-            if (currentIntallment == null) {
+            if (currentInstallment == null) {
                 return res.status(400).json({ error: "O número da parcela atual é obrigatório!" });
             }
 
             // Converter para número
             totalInstallments = Number(totalInstallments);
-            currentIntallment = Number(currentIntallment);
+            currentInstallment = Number(currentInstallment);
 
-            if (isNaN(totalInstallments) || isNaN(currentIntallment)) {
+            if (isNaN(totalInstallments) || isNaN(currentInstallment)) {
                 return res.status(400).json({ error: "Os valores das parcelas devem ser números válidos!" });
             }
 
-            if (totalInstallments <= 0 || currentIntallment <= 0) {
+            if (totalInstallments <= 0 || currentInstallment <= 0) {
                 return res.status(400).json({ error: "O número de parcelas deve ser maior que zero!" });
             }
 
-            if (currentIntallment > totalInstallments) {
+            if (currentInstallment > totalInstallments) {
                 return res.status(400).json({ error: "A parcela atual não pode ser maior que o total de parcelas!" });
             }
 
@@ -87,25 +99,25 @@ class TransactionController{
                 }
             }
             totalInstallments = 1;
-            currentIntallment = 1;   
+            currentInstallment = 1;   
         }
 
         try{
             const transaction = {
-                date: new Date(),
+                date: dateNew,
                 description: description,
                 amount: amount,
                 type: typeNew,
                 category: category,
                 totalInstallments: totalInstallments,
-                currentIntallment: currentIntallment
+                currentInstallment: currentInstallment,
             }
 
-            const idTransactionSave = await TransactionServices.saveTransaction(transaction);
+            const transactionId = await TransactionServices.saveTransaction(transaction);
 
-            const savetransactionInAcc = await AccountServices.insertTransactionInAcc(accountId, idTransactionSave);
+            const savetransactionInAcc = await AccountServices.insertTransactionInAcc(accountId, transactionId);
 
-           if (idTransactionSave && savetransactionInAcc){
+           if (transactionId && savetransactionInAcc){
                 return res.status(201).send("Transação realizada com sucesso!");
            }
         
