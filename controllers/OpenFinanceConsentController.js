@@ -41,7 +41,7 @@ class OpenFinanceConsentController {
                 permissions: permissions,
                 status: "active",
                 createdAt: new Date(),
-                expiresDate: new Date(Date.now() + this.consentExpirationMs)
+                expiresAt: new Date(Date.now() + this.consentExpirationMs)
             }
 
             const resultSave = await ConsentServices.saveConsent(consent);

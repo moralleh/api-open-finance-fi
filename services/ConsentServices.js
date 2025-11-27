@@ -31,7 +31,7 @@ class ConsentServices{
                 customerId: customerId, 
                 clientAppId: clientAppId,
                 status: "active", 
-                expiresDate: { $gt: new Date() } 
+                expiresAt: { $gt: new Date() } 
             });
             if(consent) return consent;
             return null;
@@ -48,7 +48,7 @@ class ConsentServices{
             consent.permissions = newConsent.permissions;
             consent.status = newConsent.status;
             consent.createdAt = newConsent.createdAt;
-            consent.expiresDate = newConsent.expiresDate;
+            consent.expiresAt = newConsent.expiresAt;
 
             await consent.save();
             console.log(consent);
@@ -62,7 +62,7 @@ class ConsentServices{
         try {
             const consents = await Consent.find({
                 status: "active",
-                expiresDate: { $gt: new Date() },
+                expiresAt: { $gt: new Date() },
             });
             return consents;
         } catch (error) {

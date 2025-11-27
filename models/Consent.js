@@ -8,7 +8,7 @@ const consent = new mongoose.Schema ({
     permissions: [String],
     status: String,
     createdAt: Date,
-    expiresDate: Date
+    expiresAt: Date
 });
 
 consent.pre("save", generateID("consent"));
