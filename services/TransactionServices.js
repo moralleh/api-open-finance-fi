@@ -26,8 +26,8 @@ class TransactionServices{
             transaction.type = newTransaction.type;
             transaction.category = newTransaction.category;
             transaction.totalInstallments = newTransaction.totalInstallments;
-            transaction.currentInstallment = newTransaction.currentIntallment;
-        
+            transaction.currentInstallment = newTransaction.currentInstallment;
+
             await transaction.save();
             console.log(transaction);
             return transaction._id;
