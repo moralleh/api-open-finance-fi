@@ -33,8 +33,8 @@ class ConsentServices{
                 status: "active", 
                 expiresDate: { $gt: new Date() } 
             });
-            if(consent) return true;
-            return false;
+            if(consent) return consent;
+            return null;
         } catch(error) {
             throw new Error("Erro ao buscar consentimento: " + error.message);
         }
